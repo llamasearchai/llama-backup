@@ -1,75 +1,51 @@
-"""Tests for the llama-backup package."""
-
+"""Tests for core functionality"""
 import pytest
-from typer.testing import CliRunner
-
-# Try importing the package and CLI app
-try:
-    import llama_backup
-    from llama_backup.cli import app as cli_app
-except ImportError as e:
-    pytest.fail(f"Failed to import llama_backup or cli_app: {e}", pytrace=False)
-
-runner = CliRunner()
+from llama_backup.core import Client
 
 
-def test_import():
-    """Test that the main package can be imported."""
-    assert llama_backup is not None
+def test_client_initialization():
+    """Test that client initializes properly"""
+    client = Client()
+    assert client is not None
+    assert client.config == {}
+    
+    # Test with config
+    config = {"timeout": 60}
+    client = Client(config=config)
+    assert client.config == config
 
 
-def test_version():
-    """Test that the package has a version attribute."""
-    assert hasattr(llama_backup, "__version__")
-    assert isinstance(llama_backup.__version__, str)
+def test_client_process():
+    """Test processing functionality"""
+    client = Client()
+    result = client.process("test data")
+    assert isinstance(result, dict)
+    assert "result" in result
+    assert "input" in result
+    assert result["input"] == "test data"
 
 
-def test_cli_version():
-    """Test the CLI --version option."""
-    result = runner.invoke(cli_app, ["--version"])
-    assert result.exit_code == 0
-    assert llama_backup.__version__ in result.stdout
+def test_client_status():
+    """Test status functionality"""
+    client = Client()
+    status = client.get_status()
+    assert isinstance(status, dict)
+    assert "status" in status
 
 
-def test_cli_run_job_placeholder():
-    """Test the placeholder run-job command."""
-    result = runner.invoke(cli_app, ["run-job", "my-job", "--config", "dummy.yaml"])
-    assert result.exit_code == 0
-    assert "Running backup job 'my-job'" in result.stdout
-    assert "(Placeholder: Implement actual job execution)" in result.stdout
-
-
-def test_cli_list_placeholder():
-    """Test the placeholder list command."""
-    result = runner.invoke(cli_app, ["list", "file:///tmp/backups"])
-    assert result.exit_code == 0
-    assert "Listing backups at 'file:///tmp/backups'" in result.stdout
-    assert "(Placeholder: Implement actual listing logic)" in result.stdout
-
-
-def test_cli_restore_placeholder():
-    """Test the placeholder restore command."""
-    result = runner.invoke(
-        cli_app,
-        [
-            "restore",
-            "--source",
-            "file:///tmp/backups/latest.bak",
-            "--output",
-            "/tmp/restore_here",
-            "--type",
-            "files",
-        ],
-    )
-    assert result.exit_code == 0
-    assert "Restoring from 'file:///tmp/backups/latest.bak'" in result.stdout
-    assert "(Placeholder: Implement actual restore logic)" in result.stdout
-
-
-# Add more tests later:
-# - Test configuration loading
-# - Test specific source handlers (e.g., FilesystemSource, PostgresSource) with mocks
-# - Test specific destination handlers (e.g., LocalDestination, S3Destination) with mocks/localstack
-# - Test compression/decompression
-# - Test scheduler integration
-# - Test end-to-end backup and restore jobs using temporary files/directories and mocks
+def test_get_version():
+    """Test getting version"""
+    client = Client()
+    version = client.get_version()
+    assert isinstance(version, str)
+    assert version == "0.1.0"
+    
+    
+def test_get_info():
+    """Test getting info"""
+    client = Client()
+    info = client.get_info()
+    assert isinstance(info, dict)
+    assert "name" in info
+    assert "version" in info
+    assert "features" in info
